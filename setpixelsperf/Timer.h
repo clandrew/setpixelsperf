@@ -1,4 +1,5 @@
 #pragma once
+#include "Mode.h"
 
 class Timer
 {
@@ -13,5 +14,6 @@ public:
 
     void Stop();
 
-    std::wstring GetReport();
+    std::wstring GetBriefReport();
+    std::wstring GetFullReport(int width, int height, Mode mode);
 };

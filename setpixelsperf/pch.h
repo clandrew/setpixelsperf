@@ -14,5 +14,6 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 #endif //PCH_H

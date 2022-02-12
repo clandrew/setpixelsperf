@@ -1,0 +1,4 @@
+Width: 1000	Height: 1000	Pixel Count: 1000000	Mode: SetDIBits	Time: 0.0049899s
+Width: 1000	Height: 1000	Pixel Count: 1000000	Mode: SetDIBits	Time: 0.0050079s
+Width: 100	Height: 100	Pixel Count: 10000	Mode: SetDIBits	Time: 0.0001011s
+Width: 800	Height: 800	Pixel Count: 640000	Mode: SetPixel	Time: 3.26665s

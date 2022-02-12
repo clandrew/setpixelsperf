@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="MemoryBitmap.h" />
+    <ClInclude Include="Mode.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="setpixelsperf.h" />

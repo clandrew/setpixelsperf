@@ -6,6 +6,7 @@
 #include "setpixelsperf.h"
 #include "MemoryBitmap.h"
 #include "Timer.h"
+#include "Mode.h"
 
 #define MAX_LOADSTRING 100
 
@@ -16,11 +17,8 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
 int g_width = 0;
 int g_height = 0;
-enum class Mode
-{
-    SetPixel,
-    SetDIBits
-} g_mode;
+Mode g_mode = Mode::SetDIBits;
+bool g_outputLog = true;
 
 Timer g_timer;
 MemoryBitmap g_memoryBitmap;
@@ -28,6 +26,8 @@ bool g_readyToTakeMeasurements = false;
 
 UINT g_colors[] = { 0xFF00FF, 0x00FF00, 0xFF0000, 0x0000FF};
 int g_colorIndex;
+
+FILE* g_logFile;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -77,13 +77,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int) msg.wParam;
 }
 
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
@@ -239,7 +232,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             if (g_readyToTakeMeasurements)
             {
-                MessageBox(hWnd, g_timer.GetReport().c_str(), L"Result", MB_OK); \
+                std::wstring briefReport = g_timer.GetBriefReport();
+                MessageBox(hWnd, briefReport.c_str(), L"Result", MB_OK);
+
+                if (g_outputLog)
+                {
+                    std::wfstream strm(L"log.txt", std::ios::app);
+
+                    std::wstring fullReport = g_timer.GetFullReport(g_width, g_height, g_mode);
+
+                    strm << fullReport;
+                    OutputDebugString(fullReport.c_str());
+                }
 
                 g_colorIndex = (g_colorIndex + 1) % 4;
                 g_readyToTakeMeasurements = false;
