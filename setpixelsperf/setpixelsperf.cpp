@@ -14,8 +14,8 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
-int g_width = 1000;
-int g_height = 1000;
+int g_width = 0;
+int g_height = 0;
 enum class Mode
 {
     SetPixel,
@@ -23,14 +23,15 @@ enum class Mode
 } g_mode;
 
 Timer g_timer;
-
 MemoryBitmap g_memoryBitmap;
+bool g_readyToTakeMeasurements = false;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Options(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -40,7 +41,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    g_mode = Mode::SetPixel;
+    g_mode = Mode::SetDIBits;
     g_timer.Initialize();
 
     // TODO: Place code here.
@@ -116,17 +117,24 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // Store instance handle in our global variable
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, g_width, g_height, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, 0, 1000, 1000, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
       return FALSE;
    }
 
-   g_memoryBitmap.Initialize(g_width, g_height, hWnd);
-
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
+
+   DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Options);
+
+   MoveWindow(hWnd, 0, 0, g_width, g_height, FALSE);
+
+   g_memoryBitmap.Initialize(g_width, g_height, hWnd);
+
+   g_readyToTakeMeasurements = true;
+   InvalidateRect(hWnd, nullptr, FALSE);
 
    return TRUE;
 }
@@ -167,39 +175,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-            g_timer.Start();
-
-            if (g_mode == Mode::SetPixel)
+            if (g_readyToTakeMeasurements)
             {
-                for (int y = 0; y < g_height; ++y)
+                g_timer.Start();
+
+                if (g_mode == Mode::SetPixel)
                 {
-                    for (int x = 0; x < g_width; ++x)
+                    for (int y = 0; y < g_height; ++y)
                     {
-                        SetPixel(hdc, x, y, RGB(0xFF, 00, 0xFF));
+                        for (int x = 0; x < g_width; ++x)
+                        {
+                            SetPixel(hdc, x, y, RGB(0xFF, 00, 0xFF));
+                        }
                     }
                 }
-            }
-            else
-            {
-                assert(g_mode == Mode::SetDIBits);
-
-                for (int y = 0; y < g_height; ++y)
+                else
                 {
-                    for (int x = 0; x < g_width; ++x)
+                    assert(g_mode == Mode::SetDIBits);
+
+                    for (int y = 0; y < g_height; ++y)
                     {
-                        g_memoryBitmap.SetPixel(x, y, 0xFF00FF);
+                        for (int x = 0; x < g_width; ++x)
+                        {
+                            g_memoryBitmap.SetPixel(x, y, 0xFF00FF);
+                        }
                     }
+                    g_memoryBitmap.Commit();
+
+                    BitBlt(hdc, 0, 0, g_width, g_height, g_memoryBitmap.m_hdc, 0, 0, SRCCOPY);
                 }
-                g_memoryBitmap.Commit();
 
-                BitBlt(hdc, 0, 0, g_width, g_height, g_memoryBitmap.m_hdc, 0, 0, SRCCOPY);
+                g_timer.Stop();
             }
-
-            g_timer.Stop();
 
             EndPaint(hWnd, &ps);
 
-            MessageBox(hWnd, g_timer.GetReport().c_str(), L"Result", MB_OK);
+            if (g_readyToTakeMeasurements)
+            {
+                MessageBox(hWnd, g_timer.GetReport().c_str(), L"Result", MB_OK);
+            }
         }
         break;
     case WM_DESTROY:
@@ -223,6 +237,71 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
         {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+INT_PTR CALLBACK Options(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+    {
+        HWND hControl = GetDlgItem(hDlg, IDC_TARGETWIDTH);
+        SetWindowText(hControl, L"1000");
+
+        hControl = GetDlgItem(hDlg, IDC_TARGETHEIGHT);
+        SetWindowText(hControl, L"1000");
+
+        hControl = GetDlgItem(hDlg, IDC_MODE);
+        std::wstring s = L"SetPixel";
+        SendMessage(hControl, (UINT)CB_ADDSTRING, (WPARAM)0, (LPARAM)s.c_str());
+        s = L"SetDIBits";
+        SendMessage(hControl, (UINT)CB_ADDSTRING, (WPARAM)0, (LPARAM)s.c_str());
+
+        SendMessage(hControl, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
+    }
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK)
+        {
+            int width, height;
+            Mode newMode;
+            {
+                HWND hControl = GetDlgItem(hDlg, IDC_TARGETWIDTH);
+                wchar_t buffer[255]{};
+                GetWindowText(hControl, buffer, 255);
+                width = _wtoi(buffer);
+            }
+            {
+                HWND hControl = GetDlgItem(hDlg, IDC_TARGETHEIGHT);
+                wchar_t buffer[255]{};
+                GetWindowText(hControl, buffer, 255);
+                height = _wtoi(buffer);
+            }
+            {
+                HWND hControl = GetDlgItem(hDlg, IDC_MODE);
+                wchar_t buffer[255]{};
+                GetWindowText(hControl, buffer, 255);
+                if (wcscmp(L"SetDIBits", buffer) == 0)
+                {
+                    newMode = Mode::SetDIBits;
+                }
+                else if (wcscmp(L"SetPixel", buffer) == 0)
+                {
+                    newMode = Mode::SetPixel;
+                }
+            }
+            g_width = width;
+            g_height = height;
+            g_mode = newMode;
+
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
