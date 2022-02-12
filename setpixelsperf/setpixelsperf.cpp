@@ -5,6 +5,7 @@
 #include "framework.h"
 #include "setpixelsperf.h"
 #include "MemoryBitmap.h"
+#include "Timer.h"
 
 #define MAX_LOADSTRING 100
 
@@ -21,38 +22,7 @@ enum class Mode
     SetDIBits
 } g_mode;
 
-class Timer
-{
-    LARGE_INTEGER m_freq;
-    LARGE_INTEGER m_start;
-    LARGE_INTEGER m_end;
-
-public:
-    void Initialize()
-    {
-        QueryPerformanceFrequency(&m_freq);
-    }
-
-    void Start()
-    {
-        QueryPerformanceCounter(&m_start);
-    }
-
-    void Stop()
-    {
-        QueryPerformanceCounter(&m_end);
-    }
-
-    std::wstring GetReport()
-    {
-        LONGLONG diff = m_end.QuadPart - m_start.QuadPart;
-        float time = (float)diff / (float)m_freq.QuadPart;
-
-        std::wstringstream strm;
-        strm << L"Time: " << time << L"s";
-        return strm.str();
-    }
-} g_timer;
+Timer g_timer;
 
 MemoryBitmap g_memoryBitmap;
 
