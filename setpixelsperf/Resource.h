@@ -13,10 +13,10 @@
 #define IDC_SETPIXELSPERF               109
 #define IDR_MAINFRAME                   128
 #define IDD_DIALOG1                     129
-#define IDC_COMBO1                      1001
 #define IDC_MODE                        1001
 #define IDC_TARGETWIDTH                 1002
 #define IDC_TARGETHEIGHT                1003
+#define ID_FILE_RUNBENCHMARK            32771
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -25,7 +25,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_COMMAND_VALUE         32772
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

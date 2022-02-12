@@ -26,6 +26,9 @@ Timer g_timer;
 MemoryBitmap g_memoryBitmap;
 bool g_readyToTakeMeasurements = false;
 
+UINT g_colors[] = { 0xFF00FF, 0x00FF00, 0xFF0000, 0x0000FF};
+int g_colorIndex;
+
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -112,6 +115,34 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
+void InitializeBenchmark(HWND hWnd)
+{
+    DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Options);
+
+    RECT clientRect{};
+    clientRect.right = g_width;
+    clientRect.bottom = g_height;
+    AdjustWindowRect(&clientRect, WS_OVERLAPPEDWINDOW, TRUE);
+
+    if (clientRect.left < 0)
+    {
+        clientRect.right -= clientRect.left;
+        clientRect.left = 0;
+    }
+    if (clientRect.top < 0)
+    {
+        clientRect.bottom -= clientRect.top;
+        clientRect.top = 0;
+    }
+
+    MoveWindow(hWnd, clientRect.left, clientRect.top, clientRect.right, clientRect.bottom, FALSE);
+
+    g_memoryBitmap.Initialize(g_width, g_height, hWnd);
+
+    g_readyToTakeMeasurements = true;
+    InvalidateRect(hWnd, nullptr, FALSE);
+}
+
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
@@ -127,14 +158,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
-   DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Options);
-
-   MoveWindow(hWnd, 0, 0, g_width, g_height, FALSE);
-
-   g_memoryBitmap.Initialize(g_width, g_height, hWnd);
-
-   g_readyToTakeMeasurements = true;
-   InvalidateRect(hWnd, nullptr, FALSE);
+   InitializeBenchmark(hWnd);
 
    return TRUE;
 }
@@ -165,6 +189,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            case ID_FILE_RUNBENCHMARK:
+                InitializeBenchmark(hWnd);
+                break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
@@ -185,7 +212,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         for (int x = 0; x < g_width; ++x)
                         {
-                            SetPixel(hdc, x, y, RGB(0xFF, 00, 0xFF));
+                            SetPixel(hdc, x, y, g_colors[g_colorIndex]);
                         }
                     }
                 }
@@ -197,7 +224,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         for (int x = 0; x < g_width; ++x)
                         {
-                            g_memoryBitmap.SetPixel(x, y, 0xFF00FF);
+                            g_memoryBitmap.SetPixel(x, y, g_colors[g_colorIndex]);
                         }
                     }
                     g_memoryBitmap.Commit();
@@ -212,7 +239,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             if (g_readyToTakeMeasurements)
             {
-                MessageBox(hWnd, g_timer.GetReport().c_str(), L"Result", MB_OK);
+                MessageBox(hWnd, g_timer.GetReport().c_str(), L"Result", MB_OK); \
+
+                g_colorIndex = (g_colorIndex + 1) % 4;
+                g_readyToTakeMeasurements = false;
             }
         }
         break;
