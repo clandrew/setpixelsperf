@@ -287,7 +287,7 @@ INT_PTR CALLBACK Options(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_INITDIALOG:
     {
         HWND hControl = GetDlgItem(hDlg, IDC_TARGETWIDTH);
-        SetWindowText(hControl, L"1000");
+        SetWindowText(hControl, L"1000"); // TODO: unhardcode this
 
         hControl = GetDlgItem(hDlg, IDC_TARGETHEIGHT);
         SetWindowText(hControl, L"1000");
