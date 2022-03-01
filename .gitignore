@@ -1,3 +1,5 @@
 setpixelsperf/.vs/*
 setpixelsperf/Debug/*
 setpixelsperf/Release/*
+
+/setpixelsperf/x64/*
