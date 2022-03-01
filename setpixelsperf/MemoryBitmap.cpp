@@ -20,7 +20,7 @@ void MemoryBitmap::Initialize(int width, int height, HWND hwnd)
 
     m_bits.resize(width * height * numChannels);
     memset(m_bits.data(), 0xA0, m_bits.size());
-    m_stride = width * 3;
+    m_stride = (width * 3 + 3)& (~3); // It's rounded up to 4 bytes
 
     m_myBitmapInfo.reset(new MyBitmapInfo());
     m_myBitmapInfo->bmiHeader = header;
@@ -46,5 +46,5 @@ void MemoryBitmap::SetPixel(int x, int y, unsigned int value)
 
 void MemoryBitmap::Commit()
 {
-    SetDIBits(m_hdc, m_bmp, 0, 1000, m_bits.data(), (BITMAPINFO*)m_myBitmapInfo.get(), DIB_RGB_COLORS);
+    SetDIBits(m_hdc, m_bmp, 0, m_bitmapDesc.bmHeight, m_bits.data(), (BITMAPINFO*)m_myBitmapInfo.get(), DIB_RGB_COLORS);
 }

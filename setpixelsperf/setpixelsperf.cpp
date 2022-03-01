@@ -19,6 +19,7 @@ int g_width = 0;
 int g_height = 0;
 Mode g_mode = Mode::SetDIBits;
 bool g_outputLog = true;
+int g_defaultSize = 1000;
 
 Timer g_timer;
 MemoryBitmap g_memoryBitmap;
@@ -286,11 +287,14 @@ INT_PTR CALLBACK Options(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_INITDIALOG:
     {
+        std::wstringstream strm;
+        strm << g_defaultSize;
+
         HWND hControl = GetDlgItem(hDlg, IDC_TARGETWIDTH);
-        SetWindowText(hControl, L"1000"); // TODO: unhardcode this
+        SetWindowText(hControl, strm.str().c_str()); 
 
         hControl = GetDlgItem(hDlg, IDC_TARGETHEIGHT);
-        SetWindowText(hControl, L"1000");
+        SetWindowText(hControl, strm.str().c_str());
 
         hControl = GetDlgItem(hDlg, IDC_MODE);
         std::wstring s = L"SetPixel";
