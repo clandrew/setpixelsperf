@@ -6,4 +6,7 @@ This is a very simple, minimalistic benchmark program for comparing
 
 On each draw, the plots use a different color so that you know the clear is happening.
 
+![Example image](https://raw.githubusercontent.com/clandrew/setpixelsperf/main/Screenshot.png "Example image.")
+
 Nothing too fancy.
+
